@@ -1,0 +1,257 @@
+import java.util.*;
+
+
+class Node implements Comparable<Node> {
+	int preference;
+	int score;
+	String id;
+	String circuit;
+	
+	
+	public Node(int preference, int score, String id, String circuit) {
+		super();
+		this.preference = preference;
+		this.score = score;
+		this.id = id;
+		this.circuit = circuit;
+	}
+
+	@Override
+	public String toString() {
+		return "Node [preference=" + preference + ", score=" + score + ", id=" + id + ", circuit=" + circuit + "]";
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((circuit == null) ? 0 : circuit.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + preference;
+		result = prime * result + score;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Node other = (Node) obj;
+		if (circuit == null) {
+			if (other.circuit != null)
+				return false;
+		} else if (!circuit.equals(other.circuit))
+			return false;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		if (preference != other.preference)
+			return false;
+		if (score != other.score)
+			return false;
+		return true;
+	}
+
+
+
+
+	public int compareTo(Node o) {
+		if (this.preference == o.preference) {
+			return o.score - this.score ; //descending order
+		} else {
+			return this.preference - o.preference;
+		}
+	}
+}
+public class MatchByPreferenceScore {
+	
+	/**
+	 * C C0 H:7 E:7 P:10
+C C1 H:2 E:1 P:1
+C C2 H:7 E:6 P:4
+
+J J0 H:3 E:9 P:2 C2,C0,C1
+J J1 H:4 E:3 P:7 C0,C2,C1
+J J2 H:4 E:0 P:10 C0,C2,C1
+J J3 H:10 E:3 P:8 C2,C0,C1
+J J4 H:6 E:10 P:1 C0,C2,C1
+J J5 H:6 E:7 P:7 C0,C2,C1
+J J6 H:8 E:6 P:9 C2,C1,C0
+J J7 H:7 E:1 P:5 C2,C1,C0
+J J8 H:8 E:2 P:3 C1,C0,C2
+J J9 H:10 E:2 P:1 C1,C2,C0
+J J10 H:6 E:4 P:5 C0,C2,C1
+J J11 H:8 E:4 P:7 C0,C1,C2
+
+Output file
+One line per circuit assignment. Each line should contain the circuit name followed by the juggler name, 
+followed by that juggler’s circuits in order of preference and the match score for that circuit. The line 
+should include all jugglers matched to the circuit. The example below is a valid assignment for the 
+input file above.
+
+C2 J6 C2:128 C1:31 C0:188, J3 C2:120 C0:171 C1:31, J10 C0:120 C2:86 C1:21, J0 C2:83 C0:104 C1:17 
+C1 J9 C1:23 C2:86 C0:94, J8 C1:21 C0:100 C2:80, J7 C2:75 C1:20 C0:106, J1 C0:119 C2:74 C1:18 
+C0 J5 C0:161 C2:112 C1:26, J11 C0:154 C1:27 C2:108, J2 C0:128 C2:68 C1:18, J4 C0:122 C2:106 C1:23
+	 * 
+	 * @param args
+	 */
+    public static void main(String[] args) {
+    	int[][] Cfeatures= {
+    			{7,7, 10},
+    			{2,1,1},
+    			{7,6,4},
+    			
+    	};
+    	
+    	int[][] Jfeatures = {
+    			{3,9,2  },
+    			{4,3,7},
+    			{4,0,10},
+    			{10,3,8},
+    			{6,10,1},
+    			{6,7,7},
+    			{8,6,9},
+    			{7,1,5},
+    			{8,2,3},
+    			{10,2,1},
+    			{6,4,5},
+    			{8,4,7},
+    	};
+    	
+    	
+    	int row = Jfeatures.length;
+    	int Crow = Cfeatures.length;
+    	int col = Cfeatures[0].length; //not sure how to get this second dimention length
+    	int[][] dotproduct = new int[row][col];
+    	
+    	for(int i=0; i<row; i++) {
+    	   for(int C=0; C<Crow; C++) {
+    		for(int j=0; j<col; j++) {
+    			dotproduct[i][C] += Jfeatures[i][j]*Cfeatures[C][j];
+    		}
+    	   }
+    	}
+    	
+    	for (int[] a : dotproduct) {
+            for (int i : a) {
+                System.out.print(i + "\t");
+            }
+            System.out.println("\n");
+        }
+    	
+    	//now create the decomposed objects
+    	String preferences = 
+    			"J J0 H:3 E:9 P:2 C2,C0,C1\n" + 
+    			"J J1 H:4 E:3 P:7 C0,C2,C1\n" + 
+    			"J J2 H:4 E:0 P:10 C0,C2,C1\n" + 
+    			"J J3 H:10 E:3 P:8 C2,C0,C1\n" + 
+    			"J J4 H:6 E:10 P:1 C0,C2,C1\n" + 
+    			"J J5 H:6 E:7 P:7 C0,C2,C1\n" + 
+    			"J J6 H:8 E:6 P:9 C2,C1,C0\n" + 
+    			"J J7 H:7 E:1 P:5 C2,C1,C0\n" + 
+    			"J J8 H:8 E:2 P:3 C1,C0,C2\n" + 
+    			"J J9 H:10 E:2 P:1 C1,C2,C0\n" + 
+    			"J J10 H:6 E:4 P:5 C0,C2,C1\n" +
+    			"J J11 H:8 E:4 P:7 C0,C1,C2\n";
+    	
+    	String[] Parray = preferences.split("\n");
+    	List<Node> nodeList = new ArrayList<>();
+    	int dot=0;
+    	String[][] prefArray = new String[Jfeatures.length][Cfeatures.length];
+    	for(String P: Parray) {
+    		String[] Carray = P.split(",");
+    		int pref= 0;
+    		for (String pr: Carray) {
+    			 int index = Integer.valueOf(pr.substring(pr.length()-1));
+    			 //int preference, int score, String id, String circuit
+    			 Node n = new Node(pref, dotproduct[dot][index], "J"+dot, "C"+index);
+    			 nodeList.add(n);
+    			 
+    			 prefArray[dot][pref]="C"+index;
+    			 pref++;
+    		}
+    		dot++;
+    		
+    		
+    	}
+    	
+    	//will need to sort multiple times, and alsp trim the list.
+    	Collections.sort(nodeList);
+    	nodeList.forEach(System.out::println);
+    	int percircuit = dotproduct.length / Cfeatures.length;
+    	
+    	Map<String, Set<String>> circuitAssignment = new HashMap<>();
+    	Set<String> alreadyAssigned = new HashSet<>();
+    	
+    	//after each assignment, if the circuit is  before another one, then for that juggler which not assigned yet, 
+    	//remove the circuit and move up subsequent pref up 1.
+    	
+    	while (alreadyAssigned.size() != Jfeatures.length) {
+    	   List<Node> nodes = assignJtoC(nodeList, percircuit, prefArray,  alreadyAssigned, circuitAssignment);
+    	   nodeList = nodes;
+    	}
+    	    
+    	
+    	circuitAssignment.entrySet().forEach(System.out::println);
+    }
+    
+    public static List<Node> adjustNodeList(List<Node> nodeList, String circuit, Set<String> alreadyAssigned, String[][] prefArray){
+    	System.out.println("Incoming list length: " + nodeList.size());
+    	Iterator<Node> iter = nodeList.iterator();
+    	while (iter.hasNext()) {
+    		Node node = iter.next();
+    		if(! node.circuit.equals(circuit) && !alreadyAssigned.contains(node.id)) {
+    			int row = Integer.valueOf(node.id.substring(1));
+    			
+    			int index = 0;
+    			for (int i =0; i< 3; i++) {
+    				if (prefArray[row][i].equals(circuit) ) {
+    					index = i;
+    					break;
+    				}
+    			}    			
+    			
+    			if (node.preference > index)
+    			  node.preference--;
+    		} else {
+    			iter.remove();
+    		}
+    	}
+    	Collections.sort(nodeList);
+    	System.out.println("Returning list length: " + nodeList.size());
+
+    	nodeList.forEach(System.out::println);
+
+    	return nodeList;
+    	
+    }
+    public static List<Node> assignJtoC(List<Node> nodeList, int percircuit, String[][] prefArray,  Set<String> alreadyAssigned, Map<String, Set<String>> circuitAssignment) {
+    	List<Node> newList  = null;
+    	for(Node node: nodeList) {
+	    	if (!alreadyAssigned.contains(node.id)) {
+				if(!circuitAssignment.containsKey(node.circuit)) {
+					Set<String> Jset = new HashSet<>();
+					Jset.add(node.id);
+					circuitAssignment.put(node.circuit, Jset );
+					alreadyAssigned.add(node.id);
+	
+				} else if (circuitAssignment.get(node.circuit).size() < percircuit ) {
+					circuitAssignment.get(node.circuit).add(node.id);
+					alreadyAssigned.add(node.id);
+				} else {
+					newList = adjustNodeList(nodeList, node.circuit,alreadyAssigned, prefArray );
+					break;
+				}
+			}
+    	}
+    	return newList;
+		
+    }
+	
+}
